@@ -77,3 +77,5 @@ Credits
 
 See http://jackrabbit.apache.org/jackrabbit-team.html for the list of 
 Jackrabbit committers and main contributors.
+
+This is the mock refactor testing project.
