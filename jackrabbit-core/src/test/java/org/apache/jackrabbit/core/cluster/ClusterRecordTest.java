@@ -49,282 +49,290 @@ import org.apache.jackrabbit.test.JUnitTest;
  */
 public class ClusterRecordTest extends JUnitTest {
 
-    /**
-     * Defaut workspace name.
-     */
-    private static final String DEFAULT_WORKSPACE = "default";
+	/**
+	 * Defaut workspace name.
+	 */
+	private static final String DEFAULT_WORKSPACE = "default";
 
-    /**
-     * Default sync delay: 5 seconds.
-     */
-    private static final long SYNC_DELAY = 5000;
+	/**
+	 * Default sync delay: 5 seconds.
+	 */
+	private static final long SYNC_DELAY = 5000;
 
-    /**
-     * Update event factory.
-     */
-    private final UpdateEventFactory factory = UpdateEventFactory.getInstance();
+	/**
+	 * Update event factory.
+	 */
+	private final UpdateEventFactory factory = UpdateEventFactory.getInstance();
 
-    /**
-     * Records shared among multiple memory journals.
-     */
-    private ArrayList<MemoryRecord> records = new ArrayList<MemoryRecord>();
+	/**
+	 * Records shared among multiple memory journals.
+	 */
+	private ArrayList<MemoryRecord> records = new ArrayList<MemoryRecord>();
 
-    /**
-     * Master.
-     */
-    private ClusterNode master;
+	/**
+	 * Master.
+	 */
+	private ClusterNode master;
 
-    /**
-     * Slave.
-     */
-    private ClusterNode slave;
+	/**
+	 * Slave.
+	 */
+	private ClusterNode slave;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void setUp() throws Exception {
-        master = createClusterNode("master", records);
-        master.start();
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void setUp() throws Exception {
+		master = createClusterNode("master", records);
+		master.start();
 
-        slave = createClusterNode("slave", records);
+		slave = createClusterNode("slave", records);
 
-        super.setUp();
-    }
+		super.setUp();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void tearDown() throws Exception {
-        if (master != null) {
-            master.stop();
-        }
-        if (slave != null) {
-            slave.stop();
-        }
-        super.tearDown();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void tearDown() throws Exception {
+		if (master != null) {
+			master.stop();
+		}
+		if (slave != null) {
+			slave.stop();
+		}
+		super.tearDown();
+	}
 
-    /**
-     * Test producing and consuming an update.
-     * @throws Exception
-     */
-    public void testUpdateOperation() throws Exception {
-        UpdateEvent update = factory.createUpdateOperation();
+	/**
+	 * Test producing and consuming an update.
+	 * 
+	 * @throws Exception
+	 */
+	public void testUpdateOperation() throws Exception {
+		UpdateEvent update = factory.createUpdateOperation();
 
-        UpdateEventChannel channel = master.createUpdateChannel(DEFAULT_WORKSPACE);
-        channel.updateCreated(update);
-        channel.updatePrepared(update);
-        channel.updateCommitted(update, null);
+		UpdateEventChannel channel = master.createUpdateChannel(DEFAULT_WORKSPACE);
+		channel.updateCreated(update);
+		channel.updatePrepared(update);
+		channel.updateCommitted(update, null);
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.createUpdateChannel(DEFAULT_WORKSPACE).setListener(listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.createUpdateChannel(DEFAULT_WORKSPACE).setListener(listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), update);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), update);
+	}
 
-    /**
-     * Test producing and consuming an update with a null userId
-     */
-    public void testUpdateOperationWithNullUserId() throws Exception {
-        UpdateEvent update = factory.createUpdateOperationWithNullUserId();
+	/**
+	 * Test producing and consuming an update with a null userId
+	 */
+	public void testUpdateOperationWithNullUserId() throws Exception {
+		UpdateEvent update = factory.createUpdateOperationWithNullUserId();
 
-        UpdateEventChannel channel = master.createUpdateChannel(DEFAULT_WORKSPACE);
-        channel.updateCreated(update);
-        channel.updatePrepared(update);
-        channel.updateCommitted(update, null);
+		UpdateEventChannel channel = master.createUpdateChannel(DEFAULT_WORKSPACE);
+		channel.updateCreated(update);
+		channel.updatePrepared(update);
+		channel.updateCommitted(update, null);
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.createUpdateChannel(DEFAULT_WORKSPACE).setListener(listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.createUpdateChannel(DEFAULT_WORKSPACE).setListener(listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), update);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), update);
+	}
 
-    /**
-     * Test producing and consuming a lock operation.
-     * @throws Exception
-     */
-    public void testLockOperation() throws Exception {
-        LockEvent event = new LockEvent(NodeId.randomId(), true, "admin");
+	/**
+	 * Test producing and consuming a lock operation.
+	 * 
+	 * @throws Exception
+	 */
+	public void testLockOperation() throws Exception {
+		LockEvent event = new LockEvent(NodeId.randomId(), true, "admin");
 
-        master.createLockChannel(DEFAULT_WORKSPACE).create(event.getNodeId(),
-                event.isDeep(), event.getUserId()).ended(true);
+		master.createLockChannel(DEFAULT_WORKSPACE).create(event.getNodeId(), event.isDeep(), event.getUserId())
+				.ended(true);
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.createLockChannel(DEFAULT_WORKSPACE).setListener(listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.createLockChannel(DEFAULT_WORKSPACE).setListener(listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming an unlock operation.
-     * @throws Exception
-     */
-    public void testUnlockOperation() throws Exception {
-        UnlockEvent event = new UnlockEvent(NodeId.randomId());
+	/**
+	 * Test producing and consuming an unlock operation.
+	 * 
+	 * @throws Exception
+	 */
+	public void testUnlockOperation() throws Exception {
+		UnlockEvent event = new UnlockEvent(NodeId.randomId());
 
-        master.createLockChannel(DEFAULT_WORKSPACE).create(event.getNodeId()).ended(true);
+		master.createLockChannel(DEFAULT_WORKSPACE).create(event.getNodeId()).ended(true);
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.createLockChannel(DEFAULT_WORKSPACE).setListener(listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.createLockChannel(DEFAULT_WORKSPACE).setListener(listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a node type registration.
-     * @throws Exception
-     */
-    public void testNodeTypeRegistration() throws Exception {
-        QNodeTypeDefinitionBuilder ntd = new QNodeTypeDefinitionBuilder();
-        ntd.setName(NameFactoryImpl.getInstance().create("", "test"));
-        ntd.setSupertypes(new Name[]{NameConstants.NT_BASE});
+	/**
+	 * Test producing and consuming a node type registration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testNodeTypeRegistration() throws Exception {
+		QNodeTypeDefinitionBuilder ntd = new QNodeTypeDefinitionBuilder();
+		ntd.setName(NameFactoryImpl.getInstance().create("", "test"));
+		ntd.setSupertypes(new Name[] { NameConstants.NT_BASE });
 
-        ArrayList<QNodeTypeDefinition> list = new ArrayList<QNodeTypeDefinition>();
-        list.add(ntd.build());
+		ArrayList<QNodeTypeDefinition> list = new ArrayList<QNodeTypeDefinition>();
+		list.add(ntd.build());
 
-        NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.REGISTER, list);
-        master.registered(event.getCollection());
+		NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.REGISTER, list);
+		master.registered(event.getCollection());
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((NodeTypeEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((NodeTypeEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a node type reregistration.
-     * @throws Exception
-     */
-    public void testNodeTypeReregistration() throws Exception {
-        QNodeTypeDefinitionBuilder ntd = new QNodeTypeDefinitionBuilder();
-        ntd.setName(NameFactoryImpl.getInstance().create("", "test"));
-        ntd.setSupertypes(new Name[]{NameConstants.NT_BASE});
+	/**
+	 * Test producing and consuming a node type reregistration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testNodeTypeReregistration() throws Exception {
+		QNodeTypeDefinitionBuilder ntd = new QNodeTypeDefinitionBuilder();
+		ntd.setName(NameFactoryImpl.getInstance().create("", "test"));
+		ntd.setSupertypes(new Name[] { NameConstants.NT_BASE });
 
-        ArrayList<QNodeTypeDefinition> list = new ArrayList<QNodeTypeDefinition>();
-        list.add(ntd.build());
+		ArrayList<QNodeTypeDefinition> list = new ArrayList<QNodeTypeDefinition>();
+		list.add(ntd.build());
 
-        NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.REREGISTER, list);
-        master.reregistered(ntd.build());
+		NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.REREGISTER, list);
+		master.reregistered(ntd.build());
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((NodeTypeEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((NodeTypeEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a node type unregistration.
-     * @throws Exception
-     */
-    public void testNodeTypeUnregistration() throws Exception {
-        Name name = NameFactoryImpl.getInstance().create("", "test");
+	/**
+	 * Test producing and consuming a node type unregistration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testNodeTypeUnregistration() throws Exception {
+		Name name = NameFactoryImpl.getInstance().create("", "test");
 
-        ArrayList<Name> list = new ArrayList<Name>();
-        list.add(name);
+		ArrayList<Name> list = new ArrayList<Name>();
+		list.add(name);
 
-        NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.UNREGISTER, list);
-        master.unregistered(list);
+		NodeTypeEvent event = new NodeTypeEvent(NodeTypeEvent.UNREGISTER, list);
+		master.unregistered(list);
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((NodeTypeEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((NodeTypeEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a namespace registration.
-     * @throws Exception
-     */
-    public void testNamespaceRegistration() throws Exception {
-        NamespaceEvent event = new NamespaceEvent(null, "test", "http://www.test.com");
+	/**
+	 * Test producing and consuming a namespace registration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testNamespaceRegistration() throws Exception {
+		NamespaceEvent event = new NamespaceEvent(null, "test", "http://www.test.com");
 
-        master.remapped(event.getOldPrefix(), event.getNewPrefix(), event.getUri());
+		master.remapped(event.getOldPrefix(), event.getNewPrefix(), event.getUri());
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((NamespaceEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((NamespaceEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a namespace unregistration.
-     * @throws Exception
-     */
-    public void testNamespaceUnregistration() throws Exception {
-        NamespaceEvent event = new NamespaceEvent("test", null, null);
+	/**
+	 * Test producing and consuming a namespace unregistration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testNamespaceUnregistration() throws Exception {
+		NamespaceEvent event = new NamespaceEvent("test", null, null);
 
-        master.remapped(event.getOldPrefix(), event.getNewPrefix(), event.getUri());
+		master.remapped(event.getOldPrefix(), event.getNewPrefix(), event.getUri());
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((NamespaceEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((NamespaceEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Test producing and consuming a privilege registration.
-     * @throws Exception
-     */
-    public void testPrivilegeRegistration() throws Exception {
-        PrivilegeDefinition pdf = new PrivilegeDefinitionImpl(NameFactoryImpl.getInstance().create("", "test"), false, null);
+	/**
+	 * Test producing and consuming a privilege registration.
+	 * 
+	 * @throws Exception
+	 */
+	public void testPrivilegeRegistration() throws Exception {
+		PrivilegeDefinition pdf = new PrivilegeDefinitionImpl(NameFactoryImpl.getInstance().create("", "test"), false,
+				null);
 
-        PrivilegeEvent event = new PrivilegeEvent(Collections.singletonList(pdf));
-        master.registeredPrivileges(event.getDefinitions());
+		PrivilegeEvent event = new PrivilegeEvent(Collections.singletonList(pdf));
+		master.registeredPrivileges(event.getDefinitions());
 
-        SimpleEventListener listener = new SimpleEventListener();
-        slave.setListener((PrivilegeEventListener) listener);
-        slave.sync();
+		SimpleEventListener listener = new SimpleEventListener();
+		slave.setListener((PrivilegeEventListener) listener);
+		slave.sync();
 
-        assertEquals(1, listener.getClusterEvents().size());
-        assertEquals(listener.getClusterEvents().get(0), event);
-    }
+		assertEquals(1, listener.getClusterEvents().size());
+		assertEquals(listener.getClusterEvents().get(0), event);
+	}
 
-    /**
-     * Create a cluster node, with a memory journal referencing a list of records.
-     *
-     * @param id cluster node id
-     * @param records memory journal's list of records
-     */
-    private ClusterNode createClusterNode(
-            String id, ArrayList<MemoryRecord> records) throws Exception {
-        final MemoryJournal journal = new MemoryJournal();
-        JournalFactory jf = new JournalFactory() {
-            public Journal getJournal(NamespaceResolver resolver)
-                    throws RepositoryException {
-                return journal;
-            }
-        };
-        ClusterConfig cc = new ClusterConfig(id, SYNC_DELAY, jf);
-        SimpleClusterContext context = new SimpleClusterContext(cc);
+	/**
+	 * Create a cluster node, with a memory journal referencing a list of records.
+	 *
+	 * @param id      cluster node id
+	 * @param records memory journal's list of records
+	 */
+	private ClusterNode createClusterNode(String id, ArrayList<MemoryRecord> records) throws Exception {
+		final MemoryJournal journal = new MemoryJournal();
+		JournalFactory jf = new JournalFactory() {
+			public Journal getJournal(NamespaceResolver resolver) throws RepositoryException {
+				return journal;
+			}
+		};
+		ClusterConfig cc = new ClusterConfig(id, SYNC_DELAY, jf);
+		ClusterContext context = SimpleClusterContext.mockClusterContext2(cc);
 
-        journal.setRepositoryHome(context.getRepositoryHome());
-        journal.init(id, context.getNamespaceResolver());
-        if (records != null) {
-            journal.setRecords(records);
-        }
+		journal.setRepositoryHome(context.getRepositoryHome());
+		journal.init(id, context.getNamespaceResolver());
+		if (records != null) {
+			journal.setRecords(records);
+		}
 
-        ClusterNode clusterNode = new ClusterNode();
-        clusterNode.init(context);
-        return clusterNode;
-    }
+		ClusterNode clusterNode = new ClusterNode();
+		clusterNode.init(context);
+		return clusterNode;
+	}
 }

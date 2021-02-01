@@ -18,90 +18,63 @@ package org.apache.jackrabbit.core.cluster;
 
 import java.io.File;
 
-import javax.jcr.RepositoryException;
-
 import org.apache.jackrabbit.core.config.ClusterConfig;
 import org.apache.jackrabbit.core.nodetype.xml.SimpleNamespaceRegistry;
 import org.apache.jackrabbit.spi.commons.namespace.NamespaceResolver;
 import org.apache.jackrabbit.spi.commons.namespace.RegistryNamespaceResolver;
+import org.mockito.Mockito;
 
 /**
  * Simple cluster context, providing only limited functionality.
  */
-public class SimpleClusterContext implements ClusterContext {
+public class SimpleClusterContext {
 
-    /**
-     * Cluster config.
-     */
-    private final ClusterConfig cc;
+	static public ClusterContext mockClusterContext2(ClusterConfig cc) {
+		File[] mockFieldVariableRepositoryHome = new File[1];
+		ClusterConfig[] mockFieldVariableCc = new ClusterConfig[1];
+		NamespaceResolver[] mockFieldVariableNsResolver = new NamespaceResolver[1];
+		ClusterContext mockInstance = Mockito.spy(ClusterContext.class);
+		mockFieldVariableCc[0] = cc;
+		mockFieldVariableRepositoryHome[0] = null;
+		mockFieldVariableNsResolver[0] = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableNsResolver[0];
+			}).when(mockInstance).getNamespaceResolver();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableRepositoryHome[0];
+			}).when(mockInstance).getRepositoryHome();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableCc[0];
+			}).when(mockInstance).getClusterConfig();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    /**
-     * Repository home.
-     */
-    private final File repositoryHome;
+	static public ClusterContext mockClusterContext1(ClusterConfig cc, File repositoryHome) {
+		File[] mockFieldVariableRepositoryHome = new File[1];
+		ClusterConfig[] mockFieldVariableCc = new ClusterConfig[1];
+		NamespaceResolver[] mockFieldVariableNsResolver = new NamespaceResolver[1];
+		ClusterContext mockInstance = Mockito.spy(ClusterContext.class);
+		mockFieldVariableCc[0] = cc;
+		mockFieldVariableRepositoryHome[0] = repositoryHome;
+		mockFieldVariableNsResolver[0] = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableNsResolver[0];
+			}).when(mockInstance).getNamespaceResolver();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableRepositoryHome[0];
+			}).when(mockInstance).getRepositoryHome();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableCc[0];
+			}).when(mockInstance).getClusterConfig();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    /**
-     * Namespace resolver.
-     */
-    private final NamespaceResolver nsResolver;
+	// ----------------------------------------------------------- ClusterContext
 
-    /**
-     * Create a new instance of this class.
-     *
-     * @param cc cluster config
-     * @param repositoryHome repository home
-     */
-    public SimpleClusterContext(ClusterConfig cc, File repositoryHome) {
-        this.cc = cc;
-        this.repositoryHome = repositoryHome;
-
-        nsResolver = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
-    }
-
-    /**
-     * Create a new instance of this class. Equivalent to
-     * <blockquote>SimpleClusterContext(cc, <code>null</code>)</blockquote>
-     *
-     * @param cc cluster config
-     */
-    public SimpleClusterContext(ClusterConfig cc) {
-        this(cc, null);
-    }
-
-    //----------------------------------------------------------- ClusterContext
-
-    /**
-     * {@inheritDoc}
-     */
-    public ClusterConfig getClusterConfig() {
-        return cc;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public NamespaceResolver getNamespaceResolver() {
-        return nsResolver;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public File getRepositoryHome() {
-        return repositoryHome;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void lockEventsReady(String workspace) throws RepositoryException {
-        // nothing to be done here
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void updateEventsReady(String workspace) throws RepositoryException {
-        // nothing to be done here
-    }
 }

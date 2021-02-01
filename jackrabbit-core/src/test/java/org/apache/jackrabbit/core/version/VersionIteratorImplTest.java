@@ -17,65 +17,78 @@
 package org.apache.jackrabbit.core.version;
 
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
+
+import org.apache.jackrabbit.core.id.NodeId;
+import org.mockito.Mockito;
 
 import junit.framework.TestCase;
 
-import org.apache.jackrabbit.core.id.NodeId;
-import org.apache.jackrabbit.spi.Name;
-
 public class VersionIteratorImplTest extends TestCase {
 
-    private static final int VERSION_COUNT = 10000;
+	public InternalVersion mockInternalVersion1(InternalVersion[] successors, NodeId id) {
+		InternalVersion[][] mockFieldVariableSuccessors = new InternalVersion[1][];
+		NodeId[] mockFieldVariableId = new NodeId[1];
+		InternalVersion mockInstance = Mockito.spy(InternalVersion.class);
+		mockFieldVariableSuccessors[0] = successors;
+		mockFieldVariableId[0] = id;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return Arrays.asList(mockFieldVariableSuccessors[0]);
+			}).when(mockInstance).getSuccessors();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getLinearPredecessor();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableId[0];
+			}).when(mockInstance).getId();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getVersionHistory();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getFrozenNodeId();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getPredecessors();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getCreated();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getParent();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getLabels();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getFrozenNode();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getName();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getLinearSuccessor(Mockito.any());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    private final class DummyInternalVersion implements InternalVersion {
+	private static final int VERSION_COUNT = 10000;
 
-        private final InternalVersion[] successors;
-        private NodeId id;
+	public void testVersionIterator() throws Exception {
 
-        public DummyInternalVersion(InternalVersion[] successors, NodeId id) {
-            this.successors = successors;
-            this.id = id;
-        }
+		InternalVersion version = mockInternalVersion1(new InternalVersion[] {}, NodeId.randomId());
+		for (int i = 1; i < VERSION_COUNT; i++) {
+			version = mockInternalVersion1(new InternalVersion[] { version }, NodeId.randomId());
+		}
 
-        public List<InternalVersion> getSuccessors() {
-            return Arrays.asList(successors);
-        }
+		try {
+			VersionIteratorImpl versionIteratorImpl = new VersionIteratorImpl(null, version);
+			assertEquals(VERSION_COUNT, versionIteratorImpl.getSize());
+		} catch (StackOverflowError e) {
+			fail("Should be able to handle " + VERSION_COUNT + " versions.");
+		}
 
-        public NodeId getId() {
-            return id;
-        }
-
-        public Calendar getCreated() {return null;}
-        public InternalFrozenNode getFrozenNode() {return null;}
-        public NodeId getFrozenNodeId() {return null;}
-        public Name[] getLabels() {return null;}
-        public Name getName() {return null;}
-        public InternalVersion[] getPredecessors() {return null;}
-        public InternalVersionHistory getVersionHistory() {return null;}
-        public boolean hasLabel(Name label) {return false;}
-        public boolean isMoreRecent(InternalVersion v) {return false;}
-        public boolean isRootVersion() {return false;}
-        public InternalVersionItem getParent() {return null;}
-        public InternalVersion getLinearSuccessor(InternalVersion baseVersion) { return null; }
-        public InternalVersion getLinearPredecessor() { return null; }
-    }
-
-    public void testVersionIterator() throws Exception {
-
-        InternalVersion version = new DummyInternalVersion(new InternalVersion[] {}, NodeId.randomId());
-        for (int i = 1; i < VERSION_COUNT; i++) {
-            version = new DummyInternalVersion(new InternalVersion[] {version}, NodeId.randomId());
-        }
-
-        try {
-            VersionIteratorImpl versionIteratorImpl = new VersionIteratorImpl(null, version);
-            assertEquals(VERSION_COUNT, versionIteratorImpl.getSize());
-        } catch (StackOverflowError e) {
-            fail("Should be able to handle " + VERSION_COUNT + " versions.");
-        }
-
-    }
+	}
 
 }

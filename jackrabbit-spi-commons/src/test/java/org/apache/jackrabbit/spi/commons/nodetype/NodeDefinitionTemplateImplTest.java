@@ -16,11 +16,11 @@
  */
 package org.apache.jackrabbit.spi.commons.nodetype;
 
-import org.apache.jackrabbit.spi.commons.conversion.NamePathResolver;
+import javax.jcr.nodetype.NodeDefinitionTemplate;
+
 import org.apache.jackrabbit.spi.commons.conversion.DefaultNamePathResolver;
 import org.apache.jackrabbit.spi.commons.conversion.DummyNamespaceResolver;
-
-import javax.jcr.nodetype.NodeDefinitionTemplate;
+import org.apache.jackrabbit.spi.commons.conversion.NamePathResolver;
 
 import junit.framework.TestCase;
 
@@ -29,30 +29,31 @@ import junit.framework.TestCase;
  */
 public class NodeDefinitionTemplateImplTest extends TestCase {
 
-    private NodeDefinitionTemplate tmpl;
+	private NodeDefinitionTemplate tmpl;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
 
-        NamePathResolver resolver = new DefaultNamePathResolver(new DummyNamespaceResolver());
-        tmpl = new NodeDefinitionTemplateImpl(resolver);
-    }
+		NamePathResolver resolver = new DefaultNamePathResolver(DummyNamespaceResolver.mockNamespaceResolver1());
+		tmpl = new NodeDefinitionTemplateImpl(resolver);
+	}
 
-    public void testInvalidOPVFlag() {
-        try {
-            tmpl.setOnParentVersion(-1);
-            fail("-1 isn't a valid OPV flag.");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
-        try {
-            tmpl.setOnParentVersion(Integer.MAX_VALUE);
-            fail(Integer.MAX_VALUE + " isn't a valid OPV flag.");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
-    }
+	public void testInvalidOPVFlag() {
+		try {
+			tmpl.setOnParentVersion(-1);
+			fail("-1 isn't a valid OPV flag.");
+		} catch (IllegalArgumentException e) {
+			// success
+		}
+		try {
+			tmpl.setOnParentVersion(Integer.MAX_VALUE);
+			fail(Integer.MAX_VALUE + " isn't a valid OPV flag.");
+		} catch (IllegalArgumentException e) {
+			// success
+		}
+	}
 
-    // TODO: add tests for default values on empty template NOT specified by the specification
+	// TODO: add tests for default values on empty template NOT specified by the
+	// specification
 }

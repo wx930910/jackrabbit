@@ -16,34 +16,29 @@
  */
 package org.apache.jackrabbit.spi.commons.conversion;
 
-import javax.jcr.NamespaceException;
-
 import org.apache.jackrabbit.spi.commons.namespace.NamespaceResolver;
+import org.mockito.Mockito;
 
 /**
  * Dummy namespace resolver for use in unit testing. This namespace resolver
- * maps each valid XML prefix string to the same string as the namespace URI
- * and vice versa.
+ * maps each valid XML prefix string to the same string as the namespace URI and
+ * vice versa.
  */
-public class DummyNamespaceResolver implements NamespaceResolver {
+public class DummyNamespaceResolver {
 
-    /**
-     * Returns the given prefix.
-     *
-     * @param prefix namespace prefix
-     * @return the given prefix
-     */
-    public String getURI(String prefix) throws NamespaceException {
-        return prefix;
-    }
-
-    /**
-     * Returns the given namespace URI as the corresponding prefix.
-     *
-     * @param uri namespace URI
-     * @return the given URI
-     */
-    public String getPrefix(String uri) {
-        return uri;
-    }
+	static public NamespaceResolver mockNamespaceResolver1() {
+		NamespaceResolver mockInstance = Mockito.spy(NamespaceResolver.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				String uri = stubInvo.getArgument(0);
+				return uri;
+			}).when(mockInstance).getPrefix(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				String prefix = stubInvo.getArgument(0);
+				return prefix;
+			}).when(mockInstance).getURI(Mockito.any());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

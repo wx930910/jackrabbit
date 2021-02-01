@@ -16,80 +16,79 @@
  */
 package org.apache.jackrabbit.core.security.principal;
 
-import junit.framework.TestCase;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
-import org.apache.jackrabbit.test.NotExecutableException;
+import java.util.Properties;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import java.security.Principal;
-import java.util.Properties;
+
+import org.apache.jackrabbit.test.NotExecutableException;
+import org.mockito.Mockito;
+
+import junit.framework.TestCase;
 
 /**
  * <code>AbstractPrincipalProviderTest</code>...
  */
 public class AbstractPrincipalProviderTest extends TestCase {
 
-    public void testNegativeCacheEntries() throws RepositoryException, NotExecutableException {
-        String unknownName = "UnknownPrincipal";
+	public AbstractPrincipalProvider mockAbstractPrincipalProvider1() {
+		boolean[] mockFieldVariableFirst = new boolean[] { true };
+		AbstractPrincipalProvider mockInstance = Mockito.spy(AbstractPrincipalProvider.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).findPrincipals(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).findPrincipals(Mockito.any(String.class), Mockito.anyInt());
+			Mockito.doAnswer((stubInvo) -> {
+				return true;
+			}).when(mockInstance).canReadPrincipal(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				if (mockFieldVariableFirst[0]) {
+					mockFieldVariableFirst[0] = false;
+					return null;
+				} else {
+					throw new UnsupportedOperationException();
+				}
+			}).when(mockInstance).providePrincipal(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).getGroupMembership(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).getPrincipals(Mockito.anyInt());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-        PrincipalProvider caching = new DummyProvider();
-        Properties options = new Properties();
-        options.setProperty(DefaultPrincipalProvider.NEGATIVE_ENTRY_KEY, "true");
-        caching.init(options);
+	public void testNegativeCacheEntries() throws RepositoryException, NotExecutableException {
+		String unknownName = "UnknownPrincipal";
 
-        // accessing from wrapper must not throw! as negative entry is expected
-        // to be in the cache (default behavior of the DefaultPrincipalProvider)
-        assertNull(caching.getPrincipal(unknownName));
-        assertNull(caching.getPrincipal(unknownName));
+		AbstractPrincipalProvider caching = mockAbstractPrincipalProvider1();
+		Properties options = new Properties();
+		options.setProperty(DefaultPrincipalProvider.NEGATIVE_ENTRY_KEY, "true");
+		caching.init(options);
 
-        PrincipalProvider throwing = new DummyProvider();
-        options = new Properties();
-        options.setProperty(DefaultPrincipalProvider.NEGATIVE_ENTRY_KEY, "false");
-        throwing.init(options);
+		// accessing from wrapper must not throw! as negative entry is expected
+		// to be in the cache (default behavior of the DefaultPrincipalProvider)
+		assertNull(caching.getPrincipal(unknownName));
+		assertNull(caching.getPrincipal(unknownName));
 
-        // however: the noNegativeCacheProvider configured NOT to cache null-results
-        // is expected to call 'providePrincipal' for each call to 'getPrincipal'
-        // with a principalName that doesn't exist.
-        assertNull(throwing.getPrincipal(unknownName));
-        try {
-            throwing.getPrincipal(unknownName);
-            fail("exception expected");
-        } catch (UnsupportedOperationException e) {
-            // success
-        }
-    }
+		AbstractPrincipalProvider throwing = mockAbstractPrincipalProvider1();
+		options = new Properties();
+		options.setProperty(DefaultPrincipalProvider.NEGATIVE_ENTRY_KEY, "false");
+		throwing.init(options);
 
-    private class DummyProvider extends AbstractPrincipalProvider {
-
-        private boolean first = true;
-        @Override
-        protected Principal providePrincipal(String principalName) {
-            if (first) {
-                first = false;
-                return null;
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        }
-        public PrincipalIterator findPrincipals(String simpleFilter) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator findPrincipals(String simpleFilter, int searchType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator getPrincipals(int searchType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator getGroupMembership(Principal principal) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean canReadPrincipal(Session session, Principal principalToRead) {
-            return true;
-        }
-    }
+		// however: the noNegativeCacheProvider configured NOT to cache null-results
+		// is expected to call 'providePrincipal' for each call to 'getPrincipal'
+		// with a principalName that doesn't exist.
+		assertNull(throwing.getPrincipal(unknownName));
+		try {
+			throwing.getPrincipal(unknownName);
+			fail("exception expected");
+		} catch (UnsupportedOperationException e) {
+			// success
+		}
+	}
 }

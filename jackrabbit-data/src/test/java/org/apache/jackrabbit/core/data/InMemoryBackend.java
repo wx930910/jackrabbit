@@ -35,169 +35,156 @@ import java.util.Set;
  */
 public class InMemoryBackend implements Backend {
 
-    private HashMap<DataIdentifier, byte[]> data = new HashMap<DataIdentifier, byte[]>();
+	private HashMap<DataIdentifier, byte[]> data = new HashMap<DataIdentifier, byte[]>();
 
-    private HashMap<DataIdentifier, Long> timeMap = new HashMap<DataIdentifier, Long>();
-    
-    private CachingDataStore store;
-    
-    private Properties properties;
+	private HashMap<DataIdentifier, Long> timeMap = new HashMap<DataIdentifier, Long>();
 
-    @Override
-    public void init(CachingDataStore store, String homeDir, String config)
-            throws DataStoreException {
-        // ignore
-        log("init");
-        this.store = store;
-    }
+	private CachingDataStore store;
 
-    @Override
-    public void close() {
-        // ignore
-        log("close");
-    }
+	private Properties properties;
 
-    @Override
-    public boolean exists(final DataIdentifier identifier) {
-        log("exists " + identifier);
-        return data.containsKey(identifier);
-    }
+	@Override
+	public void init(CachingDataStore store, String homeDir, String config) throws DataStoreException {
+		// ignore
+		log("init");
+		this.store = store;
+	}
 
-    @Override
-    public Iterator<DataIdentifier> getAllIdentifiers()
-            throws DataStoreException {
-        log("getAllIdentifiers");
-        return data.keySet().iterator();
-    }
+	@Override
+	public void close() {
+		// ignore
+		log("close");
+	}
 
-    @Override
-    public InputStream read(final DataIdentifier identifier)
-            throws DataStoreException {
-        log("read " + identifier);
-        return new ByteArrayInputStream(data.get(identifier));
-    }
+	@Override
+	public boolean exists(final DataIdentifier identifier) {
+		log("exists " + identifier);
+		return data.containsKey(identifier);
+	}
 
-    @Override
-    public void writeAsync(final DataIdentifier identifier, final File file,
-            final AsyncUploadCallback callback) throws DataStoreException {
-        this.write(identifier, file, true, callback);
-    }
+	@Override
+	public Iterator<DataIdentifier> getAllIdentifiers() throws DataStoreException {
+		log("getAllIdentifiers");
+		return data.keySet().iterator();
+	}
 
-    @Override
-    public void write(final DataIdentifier identifier, final File file)
-            throws DataStoreException {
-        this.write(identifier, file, false, null);
-    }
+	@Override
+	public InputStream read(final DataIdentifier identifier) throws DataStoreException {
+		log("read " + identifier);
+		return new ByteArrayInputStream(data.get(identifier));
+	}
 
-    @Override
-    public long getLastModified(final DataIdentifier identifier)
-            throws DataStoreException {
-        log("getLastModified " + identifier);
-        return timeMap.get(identifier);
-    }
+	@Override
+	public void writeAsync(final DataIdentifier identifier, final File file, final AsyncUploadCallback callback)
+			throws DataStoreException {
+		this.write(identifier, file, true, callback);
+	}
 
-    @Override
-    public void deleteRecord(final DataIdentifier identifier)
-            throws DataStoreException {
-        timeMap.remove(identifier);
-        data.remove(identifier);
-    }
+	@Override
+	public void write(final DataIdentifier identifier, final File file) throws DataStoreException {
+		this.write(identifier, file, false, null);
+	}
 
-    @Override
-    public Set<DataIdentifier> deleteAllOlderThan(final long min) throws DataStoreException {
-        log("deleteAllOlderThan " + min);
-        Set<DataIdentifier> tobeDeleted = new HashSet<DataIdentifier>();
-        for (Map.Entry<DataIdentifier, Long> entry : timeMap.entrySet()) {
-            DataIdentifier identifier = entry.getKey();
-            long timestamp = entry.getValue();
-            if (timestamp < min && !store.isInUse(identifier)
-                && store.confirmDelete(identifier)) {
-                store.deleteFromCache(identifier);
-                tobeDeleted.add(identifier);
-            }
-        }
-        for (DataIdentifier identifier : tobeDeleted) {
-            timeMap.remove(identifier);
-            data.remove(identifier);
-        }
-        return tobeDeleted;
-    }
+	@Override
+	public long getLastModified(final DataIdentifier identifier) throws DataStoreException {
+		log("getLastModified " + identifier);
+		return timeMap.get(identifier);
+	}
 
-    @Override
-    public long getLength(final DataIdentifier identifier)
-            throws DataStoreException {
-        try {
-            return data.get(identifier).length;
-        } catch (Exception e) {
-            throw new DataStoreException(e);
-        }
-    }
+	@Override
+	public void deleteRecord(final DataIdentifier identifier) throws DataStoreException {
+		timeMap.remove(identifier);
+		data.remove(identifier);
+	}
 
-    @Override
-    public boolean exists(final DataIdentifier identifier, final boolean touch)
-            throws DataStoreException {
-        boolean retVal = data.containsKey(identifier);
-        if (retVal && touch) {
-            timeMap.put(identifier, System.currentTimeMillis());
-        }
-        return retVal;
-    }
-    
-    @Override
-    public void touch(DataIdentifier identifier, long minModifiedDate) {
-        timeMap.put(identifier, System.currentTimeMillis());
-    }
+	@Override
+	public Set<DataIdentifier> deleteAllOlderThan(final long min) throws DataStoreException {
+		log("deleteAllOlderThan " + min);
+		Set<DataIdentifier> tobeDeleted = new HashSet<DataIdentifier>();
+		for (Map.Entry<DataIdentifier, Long> entry : timeMap.entrySet()) {
+			DataIdentifier identifier = entry.getKey();
+			long timestamp = entry.getValue();
+			if (timestamp < min && !store.isInUse(identifier) && store.confirmDelete(identifier)) {
+				store.deleteFromCache(identifier);
+				tobeDeleted.add(identifier);
+			}
+		}
+		for (DataIdentifier identifier : tobeDeleted) {
+			timeMap.remove(identifier);
+			data.remove(identifier);
+		}
+		return tobeDeleted;
+	}
 
-    @Override
-    public void touchAsync(DataIdentifier identifier, long minModifiedDate,
-            AsyncTouchCallback callback) {
-        timeMap.put(identifier, System.currentTimeMillis());
-        callback.onSuccess(new AsyncTouchResult(identifier));
-    }
+	@Override
+	public long getLength(final DataIdentifier identifier) throws DataStoreException {
+		try {
+			return data.get(identifier).length;
+		} catch (Exception e) {
+			throw new DataStoreException(e);
+		}
+	}
 
-    private void write(final DataIdentifier identifier, final File file,
-            final boolean async, final AsyncUploadCallback callback)
-            throws DataStoreException {
-        log("write " + identifier + " " + file.length());
-        byte[] buffer = new byte[(int) file.length()];
-        try {
-            if (async && callback == null) {
-                throw new IllegalArgumentException(
-                    "callback parameter cannot be null");
-            }
-            DataInputStream din = new DataInputStream(new FileInputStream(file));
-            din.readFully(buffer);
-            din.close();
-            data.put(identifier, buffer);
-            timeMap.put(identifier, System.currentTimeMillis());
-        } catch (IOException e) {
-            if (async) {
-                callback.onAbort(new AsyncUploadResult(identifier, file));
-            }
-            throw new DataStoreException(e);
-        }
-        if (async) {
-            callback.onSuccess(new AsyncUploadResult(identifier, file));
-        }
-    }
-    
-    /**
-     * Properties used to configure the backend. If provided explicitly before
-     * init is invoked then these take precedence
-     *
-     * @param properties to configure S3Backend
-     */
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
+	@Override
+	public boolean exists(final DataIdentifier identifier, final boolean touch) throws DataStoreException {
+		boolean retVal = data.containsKey(identifier);
+		if (retVal && touch) {
+			timeMap.put(identifier, System.currentTimeMillis());
+		}
+		return retVal;
+	}
 
-    /**
-     * Log a message if logging is enabled.
-     * 
-     * @param message
-     *            the message
-     */
-    private void log(final String message) {
-        // System.out.println(message);
-    }
+	@Override
+	public void touch(DataIdentifier identifier, long minModifiedDate) {
+		timeMap.put(identifier, System.currentTimeMillis());
+	}
+
+	@Override
+	public void touchAsync(DataIdentifier identifier, long minModifiedDate, AsyncTouchCallback callback) {
+		timeMap.put(identifier, System.currentTimeMillis());
+		callback.onSuccess(new AsyncTouchResult(identifier));
+	}
+
+	private void write(final DataIdentifier identifier, final File file, final boolean async,
+			final AsyncUploadCallback callback) throws DataStoreException {
+		log("write " + identifier + " " + file.length());
+		byte[] buffer = new byte[(int) file.length()];
+		try {
+			if (async && callback == null) {
+				throw new IllegalArgumentException("callback parameter cannot be null");
+			}
+			DataInputStream din = new DataInputStream(new FileInputStream(file));
+			din.readFully(buffer);
+			din.close();
+			data.put(identifier, buffer);
+			timeMap.put(identifier, System.currentTimeMillis());
+		} catch (IOException e) {
+			if (async) {
+				callback.onAbort(new AsyncUploadResult(identifier, file));
+			}
+			throw new DataStoreException(e);
+		}
+		if (async) {
+			callback.onSuccess(new AsyncUploadResult(identifier, file));
+		}
+	}
+
+	/**
+	 * Properties used to configure the backend. If provided explicitly before init
+	 * is invoked then these take precedence
+	 *
+	 * @param properties to configure S3Backend
+	 */
+	public void setProperties(Properties properties) {
+		this.properties = properties;
+	}
+
+	/**
+	 * Log a message if logging is enabled.
+	 * 
+	 * @param message the message
+	 */
+	private void log(final String message) {
+		// System.out.println(message);
+	}
 }

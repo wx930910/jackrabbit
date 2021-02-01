@@ -20,6 +20,10 @@ import javax.jcr.RepositoryException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.mockito.Mockito;
+import org.apache.jackrabbit.core.data.Backend;
+import org.apache.jackrabbit.core.data.CachingDataStore;
+import java.util.Properties;
 
 /**
  * Test {@link CachingDataStore} with InMemoryBackend and local cache on.
@@ -30,8 +34,22 @@ public class TestInMemDs extends TestCaseBase {
 
     @Override
     protected DataStore createDataStore() throws RepositoryException {
-        InMemoryDataStore inMemDS = new InMemoryDataStore();
-        inMemDS.setProperties(null);
+        CachingDataStore inMemDS = Mockito.spy(CachingDataStore.class);
+		Properties[] inMemDSProperties = new Properties[1];
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return "mem.init.done";
+			}).when(inMemDS).getMarkerFile();
+			Mockito.doAnswer((stubInvo) -> {
+				InMemoryBackend backend = new InMemoryBackend();
+				if (inMemDSProperties[0] != null) {
+					backend.setProperties(inMemDSProperties[0]);
+				}
+				return backend;
+			}).when(inMemDS).createBackend();
+		} catch (Exception exception) {
+		}
+        inMemDSProperties[0] = null;
         inMemDS.init(dataStoreDir);
         inMemDS.setSecret("12345");
         return inMemDS;

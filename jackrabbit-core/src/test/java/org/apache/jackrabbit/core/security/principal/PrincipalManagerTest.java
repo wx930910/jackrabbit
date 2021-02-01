@@ -20,62 +20,62 @@ import java.security.Principal;
 import java.util.Properties;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.api.security.principal.GroupPrincipal;
 import org.apache.jackrabbit.api.security.principal.JackrabbitPrincipal;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.test.AbstractJCRTest;
 import org.apache.jackrabbit.test.NotExecutableException;
 import org.mockito.Mockito;
-
 
 /**
  * <code>PrincipalManagerTest</code>...
  */
 public class PrincipalManagerTest extends AbstractJCRTest {
 
-    private static final String TESTGROUP_NAME = "org.apache.jackrabbit.core.security.principal.PrincipalManagerTest.testgroup";
-    private static final GroupPrincipal TESTGROUP = Mockito.mock(GroupPrincipal.class);
+	static public AbstractPrincipalProvider mockAbstractPrincipalProvider1() {
+		AbstractPrincipalProvider mockInstance = Mockito.spy(AbstractPrincipalProvider.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).getPrincipals(Mockito.anyInt());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).getGroupMembership(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				String principalName = stubInvo.getArgument(0);
+				return TESTGROUP_NAME.equals(principalName) ? TESTGROUP : null;
+			}).when(mockInstance).providePrincipal(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				return true;
+			}).when(mockInstance).canReadPrincipal(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).findPrincipals(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException();
+			}).when(mockInstance).findPrincipals(Mockito.any(String.class), Mockito.anyInt());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    private static class CustomPrincipalProvider extends AbstractPrincipalProvider {
+	private static final String TESTGROUP_NAME = "org.apache.jackrabbit.core.security.principal.PrincipalManagerTest.testgroup";
+	private static final GroupPrincipal TESTGROUP = Mockito.mock(GroupPrincipal.class);
 
-        protected Principal providePrincipal(String principalName) {
-            return TESTGROUP_NAME.equals(principalName) ? TESTGROUP : null;
-        }
+	/**
+	 * Test if a group which is not item based will be wrapped by a
+	 * JackrabbitPrincipal implementation.
+	 * 
+	 * @throws NotExecutableException
+	 * @throws RepositoryException
+	 */
+	public void testJackrabbitPrincipal() throws NotExecutableException, RepositoryException {
 
-        public PrincipalIterator findPrincipals(String simpleFilter) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator findPrincipals(String simpleFilter, int searchType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator getPrincipals(int searchType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrincipalIterator getGroupMembership(Principal principal) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean canReadPrincipal(Session session, Principal principalToRead) {
-            return true;
-        }
-    }
-
-    /**
-     * Test if a group which is not item based will be wrapped by a JackrabbitPrincipal implementation.
-     * @throws NotExecutableException
-     * @throws RepositoryException
-     */
-    public void testJackrabbitPrincipal() throws NotExecutableException, RepositoryException {
-
-        final PrincipalProvider testProvider = new CustomPrincipalProvider();
-        testProvider.init(new Properties());
-        PrincipalManagerImpl principalManager = new PrincipalManagerImpl(superuser, new PrincipalProvider[] { testProvider });
-        Principal principalFromManager = principalManager.getPrincipal(TESTGROUP_NAME);
-        assertTrue(principalFromManager instanceof JackrabbitPrincipal);
-    }
+		final AbstractPrincipalProvider testProvider = PrincipalManagerTest.mockAbstractPrincipalProvider1();
+		testProvider.init(new Properties());
+		PrincipalManagerImpl principalManager = new PrincipalManagerImpl(superuser,
+				new PrincipalProvider[] { testProvider });
+		Principal principalFromManager = principalManager.getPrincipal(TESTGROUP_NAME);
+		assertTrue(principalFromManager instanceof JackrabbitPrincipal);
+	}
 }
