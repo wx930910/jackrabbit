@@ -16,13 +16,11 @@
  */
 package org.apache.jackrabbit.core.security.user;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 import org.apache.jackrabbit.api.security.user.AbstractUserTest;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.core.security.user.action.AbstractAuthorizableAction;
 import org.apache.jackrabbit.core.security.user.action.AuthorizableAction;
+import org.mockito.Mockito;
 
 /**
  * <code>AuthorizableActionTest</code>...
@@ -56,33 +54,22 @@ public class AuthorizableActionTest extends AbstractUserTest {
 		User u = null;
 
 		try {
-			TestAction action = new TestAction();
+			AbstractAuthorizableAction action = Mockito.spy(AbstractAuthorizableAction.class);
 			setActions(action);
 
 			String uid = getTestPrincipal().getName();
 			u = impl.createUser(uid, buildPassword(uid));
 
 			u.changePassword("pw1");
-			assertEquals(1, action.called);
+			Mockito.verify(action, Mockito.times(1)).onPasswordChange(Mockito.any(), Mockito.any(), Mockito.any());
 
 			u.changePassword("pw2", "pw1");
-			assertEquals(2, action.called);
+			Mockito.verify(action, Mockito.times(2)).onPasswordChange(Mockito.any(), Mockito.any(), Mockito.any());
 		} finally {
 			if (u != null) {
 				u.remove();
 			}
 			save(superuser);
-		}
-	}
-
-	// --------------------------------------------------------------------------
-	private class TestAction extends AbstractAuthorizableAction {
-
-		private int called = 0;
-
-		@Override
-		public void onPasswordChange(User user, String newPassword, Session session) throws RepositoryException {
-			called++;
 		}
 	}
 }
