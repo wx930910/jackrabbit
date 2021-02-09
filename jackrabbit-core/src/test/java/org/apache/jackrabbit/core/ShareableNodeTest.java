@@ -17,137 +17,142 @@
 package org.apache.jackrabbit.core;
 
 import javax.jcr.Node;
-import javax.jcr.Workspace;
 import javax.jcr.NodeIterator;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.Query;
+import javax.jcr.Workspace;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.ObservationManager;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
 
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
 import org.apache.jackrabbit.test.AbstractJCRTest;
+import org.mockito.Mockito;
 
 /**
  * Tests features available with shareable nodes.
  */
 public class ShareableNodeTest extends AbstractJCRTest {
-    
-    //------------------------------------------------------ specification tests
 
-    /**
-     * Verify that observation events are sent only once (6.13.15).
-     */
-    public void testObservation() throws Exception {
-        // setup parent nodes and first child
-        Node a1 = testRootNode.addNode("a1");
-        Node a2 = testRootNode.addNode("a2");
-        Node b1 = a1.addNode("b1");
-        testRootNode.save();
+	// ------------------------------------------------------ specification tests
 
-        // add mixin
-        b1.addMixin("mix:shareable");
-        b1.save();
+	/**
+	 * Verify that observation events are sent only once (6.13.15).
+	 */
+	public void testObservation() throws Exception {
+		// setup parent nodes and first child
+		Node a1 = testRootNode.addNode("a1");
+		Node a2 = testRootNode.addNode("a2");
+		Node b1 = a1.addNode("b1");
+		testRootNode.save();
 
-        // clone
-        Workspace workspace = b1.getSession().getWorkspace();
-        workspace.clone(workspace.getName(), b1.getPath(),
-                a2.getPath() + "/b2", false);
+		// add mixin
+		b1.addMixin("mix:shareable");
+		b1.save();
 
-        // event listener that counts events received
-        class EventCounter implements SynchronousEventListener {
+		// clone
+		Workspace workspace = b1.getSession().getWorkspace();
+		workspace.clone(workspace.getName(), b1.getPath(), a2.getPath() + "/b2", false);
 
-            private int count;
+		// event listener that counts events received
+		class EventCounter implements SynchronousEventListener {
 
-            public void onEvent(EventIterator events) {
-                while (events.hasNext()) {
-                    events.nextEvent();
-                    count++;
-                }
-            }
+			private int count;
 
-            public int getEventCount() {
-                return count;
-            }
+			public void onEvent(EventIterator events) {
+				while (events.hasNext()) {
+					events.nextEvent();
+					count++;
+				}
+			}
 
-            public void resetCount() {
-                count = 0;
-            }
-        }
+			public int getEventCount() {
+				return count;
+			}
 
-        EventCounter el = new EventCounter();
-        ObservationManager om = superuser.getWorkspace().getObservationManager();
+			public void resetCount() {
+				count = 0;
+			}
+		}
 
-        // add node underneath shared set: verify it generates one event only
-        om.addEventListener(el, Event.NODE_ADDED, testRootNode.getPath(),
-                true, null, null, false);
-        b1.addNode("c");
-        b1.save();
-        superuser.getWorkspace().getObservationManager().removeEventListener(el);
-        assertEquals(1, el.getEventCount());
+		SynchronousEventListener el = Mockito.mock(SynchronousEventListener.class);
+		int[] elCount = new int[1];
+		Mockito.doAnswer((stubInvo) -> {
+			EventIterator events = stubInvo.getArgument(0);
+			while (events.hasNext()) {
+				events.nextEvent();
+				elCount[0]++;
+			}
+			return null;
+		}).when(el).onEvent(Mockito.any());
+		ObservationManager om = superuser.getWorkspace().getObservationManager();
 
-        // remove node underneath shared set: verify it generates one event only
-        el.resetCount();
-        om.addEventListener(el, Event.NODE_REMOVED, testRootNode.getPath(),
-                true, null, null, false);
-        b1.getNode("c").remove();
-        b1.save();
-        superuser.getWorkspace().getObservationManager().removeEventListener(el);
-        assertEquals(1, el.getEventCount());
+		// add node underneath shared set: verify it generates one event only
+		om.addEventListener(el, Event.NODE_ADDED, testRootNode.getPath(), true, null, null, false);
+		b1.addNode("c");
+		b1.save();
+		superuser.getWorkspace().getObservationManager().removeEventListener(el);
+		assertEquals(1, elCount[0]);
 
-        // add property underneath shared set: verify it generates one event only
-        el.resetCount();
-        om.addEventListener(el, Event.PROPERTY_ADDED, testRootNode.getPath(),
-                true, null, null, false);
-        b1.setProperty("c", "1");
-        b1.save();
-        superuser.getWorkspace().getObservationManager().removeEventListener(el);
-        assertEquals(1, el.getEventCount());
+		// remove node underneath shared set: verify it generates one event only
+		elCount[0] = 0;
+		om.addEventListener(el, Event.NODE_REMOVED, testRootNode.getPath(), true, null, null, false);
+		b1.getNode("c").remove();
+		b1.save();
+		superuser.getWorkspace().getObservationManager().removeEventListener(el);
+		assertEquals(1, elCount[0]);
 
-        // modify property underneath shared set: verify it generates one event only
-        el.resetCount();
-        om.addEventListener(el, Event.PROPERTY_CHANGED, testRootNode.getPath(),
-                true, null, null, false);
-        b1.setProperty("c", "2");
-        b1.save();
-        superuser.getWorkspace().getObservationManager().removeEventListener(el);
-        assertEquals(1, el.getEventCount());
+		// add property underneath shared set: verify it generates one event only
+		elCount[0] = 0;
+		om.addEventListener(el, Event.PROPERTY_ADDED, testRootNode.getPath(), true, null, null, false);
+		b1.setProperty("c", "1");
+		b1.save();
+		superuser.getWorkspace().getObservationManager().removeEventListener(el);
+		assertEquals(1, elCount[0]);
 
-        // remove property underneath shared set: verify it generates one event only
-        el.resetCount();
-        om.addEventListener(el, Event.PROPERTY_REMOVED, testRootNode.getPath(),
-                true, null, null, false);
-        b1.getProperty("c").remove();
-        b1.save();
-        superuser.getWorkspace().getObservationManager().removeEventListener(el);
-        assertEquals(1, el.getEventCount());
-    }
+		// modify property underneath shared set: verify it generates one event only
+		elCount[0] = 0;
+		om.addEventListener(el, Event.PROPERTY_CHANGED, testRootNode.getPath(), true, null, null, false);
+		b1.setProperty("c", "2");
+		b1.save();
+		superuser.getWorkspace().getObservationManager().removeEventListener(el);
+		assertEquals(1, elCount[0]);
 
-    /**
-     * Verify that a shared node is removed when the ancestor is removed.
-     * See also JCR-2257.
-     */
-    public void testRemoveAncestorOfSharedNode() throws Exception {
-        Node a1 = testRootNode.addNode("a1");
-        Node a2 = a1.addNode("a2");
-        Node b1 = a1.addNode("b1");
-        ensureMixinType(b1, mixShareable);
-        testRootNode.save();
-        //now we have a shareable node N with path a1/b1
+		// remove property underneath shared set: verify it generates one event only
+		elCount[0] = 0;
+		om.addEventListener(el, Event.PROPERTY_REMOVED, testRootNode.getPath(), true, null, null, false);
+		b1.getProperty("c").remove();
+		b1.save();
+		superuser.getWorkspace().getObservationManager().removeEventListener(el);
+		assertEquals(1, elCount[0]);
+	}
 
-        Workspace workspace = testRootNode.getSession().getWorkspace();
-        String path = a2.getPath() + "/b2";
-        workspace.clone(workspace.getName(), b1.getPath(), path, false);
-        testRootNode.save();
-        //now we have another shareable node N' in the same shared set as N with path a1/a2/b2
+	/**
+	 * Verify that a shared node is removed when the ancestor is removed. See also
+	 * JCR-2257.
+	 */
+	public void testRemoveAncestorOfSharedNode() throws Exception {
+		Node a1 = testRootNode.addNode("a1");
+		Node a2 = a1.addNode("a2");
+		Node b1 = a1.addNode("b1");
+		ensureMixinType(b1, mixShareable);
+		testRootNode.save();
+		// now we have a shareable node N with path a1/b1
 
-        a2.remove();
-        testRootNode.save();
+		Workspace workspace = testRootNode.getSession().getWorkspace();
+		String path = a2.getPath() + "/b2";
+		workspace.clone(workspace.getName(), b1.getPath(), path, false);
+		testRootNode.save();
+		// now we have another shareable node N' in the same shared set as N with path
+		// a1/a2/b2
 
-        // assert b2 is removed from index
-        QueryManager qm = superuser.getWorkspace().getQueryManager();
-        String stmt = testPath + "//b2";
-        NodeIterator it = qm.createQuery(stmt, Query.XPATH).execute().getNodes();
-        assertFalse(it.hasNext());
-    }
+		a2.remove();
+		testRootNode.save();
+
+		// assert b2 is removed from index
+		QueryManager qm = superuser.getWorkspace().getQueryManager();
+		String stmt = testPath + "//b2";
+		NodeIterator it = qm.createQuery(stmt, Query.XPATH).execute().getNodes();
+		assertFalse(it.hasNext());
+	}
 }

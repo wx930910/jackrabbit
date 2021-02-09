@@ -16,8 +16,11 @@
  */
 package org.apache.jackrabbit.core.data;
 
+import java.util.Properties;
+
 import javax.jcr.RepositoryException;
 
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,14 +30,27 @@ import org.slf4j.LoggerFactory;
 
 public class TestInMemDsCacheOff extends TestCaseBase {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDsCacheOff.class);
-    @Override
-    protected DataStore createDataStore() throws RepositoryException {
-        InMemoryDataStore inMemDS = new InMemoryDataStore();
-        inMemDS.setProperties(null);
-        inMemDS.init(dataStoreDir);
-        inMemDS.setSecret("12345");
-        inMemDS.setCacheSize(0);
-        return inMemDS;
-    }
+	protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDsCacheOff.class);
+
+	@Override
+	protected DataStore createDataStore() throws RepositoryException {
+		CachingDataStore inMemDS = Mockito.spy(CachingDataStore.class);
+		Properties[] inMemDSProperties = new Properties[1];
+		try {
+			Mockito.doReturn("mem.init.done").when(inMemDS).getMarkerFile();
+			Mockito.doAnswer((stubInvo) -> {
+				InMemoryBackend backend = new InMemoryBackend();
+				if (inMemDSProperties[0] != null) {
+					backend.setProperties(inMemDSProperties[0]);
+				}
+				return backend;
+			}).when(inMemDS).createBackend();
+		} catch (Exception exception) {
+		}
+		inMemDSProperties[0] = null;
+		inMemDS.init(dataStoreDir);
+		inMemDS.setSecret("12345");
+		inMemDS.setCacheSize(0);
+		return inMemDS;
+	}
 }
