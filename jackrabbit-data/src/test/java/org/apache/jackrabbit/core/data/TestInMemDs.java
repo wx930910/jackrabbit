@@ -16,6 +16,10 @@
  */
 package org.apache.jackrabbit.core.data;
 
+import static org.mockito.Mockito.*;
+
+import java.util.Properties;
+
 import javax.jcr.RepositoryException;
 
 import org.slf4j.Logger;
@@ -26,16 +30,24 @@ import org.slf4j.LoggerFactory;
  */
 public class TestInMemDs extends TestCaseBase {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDs.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDs.class);
 
-    @Override
-    protected DataStore createDataStore() throws RepositoryException {
-        InMemoryDataStore inMemDS = new InMemoryDataStore();
-        inMemDS.setProperties(null);
-        inMemDS.init(dataStoreDir);
-        inMemDS.setSecret("12345");
-        return inMemDS;
-    }
-    
+	@Override
+	protected DataStore createDataStore() throws RepositoryException {
+		CachingDataStore inMemDS = spy(CachingDataStore.class);
+		Properties[] inMemDSProperties = new Properties[1];
+		doReturn("mem.init.done").when(inMemDS).getMarkerFile();
+		doAnswer((stubInvo) -> {
+			InMemoryBackend backend = new InMemoryBackend();
+			if (inMemDSProperties[0] != null) {
+				backend.setProperties(inMemDSProperties[0]);
+			}
+			return backend;
+		}).when(inMemDS).createBackend();
+		inMemDSProperties[0] = null;
+		inMemDS.init(dataStoreDir);
+		inMemDS.setSecret("12345");
+		return inMemDS;
+	}
 
 }

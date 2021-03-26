@@ -16,6 +16,9 @@
  */
 package org.apache.jackrabbit.core.cluster;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 
 import javax.jcr.RepositoryException;
@@ -28,80 +31,48 @@ import org.apache.jackrabbit.spi.commons.namespace.RegistryNamespaceResolver;
 /**
  * Simple cluster context, providing only limited functionality.
  */
-public class SimpleClusterContext implements ClusterContext {
+public class SimpleClusterContext {
 
-    /**
-     * Cluster config.
-     */
-    private final ClusterConfig cc;
+	public static ClusterContext mockClusterContext1(ClusterConfig cc, File repositoryHome) throws RepositoryException {
+		ClusterConfig mockFieldVariableCc;
+		NamespaceResolver mockFieldVariableNsResolver;
+		File mockFieldVariableRepositoryHome;
+		ClusterContext mockInstance = mock(ClusterContext.class);
+		mockFieldVariableCc = cc;
+		mockFieldVariableRepositoryHome = repositoryHome;
+		mockFieldVariableNsResolver = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
+		when(mockInstance.getClusterConfig()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableCc;
+		});
+		when(mockInstance.getRepositoryHome()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableRepositoryHome;
+		});
+		when(mockInstance.getNamespaceResolver()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableNsResolver;
+		});
+		return mockInstance;
+	}
 
-    /**
-     * Repository home.
-     */
-    private final File repositoryHome;
+	public static ClusterContext mockClusterContext2(ClusterConfig cc) throws RepositoryException {
+		ClusterConfig mockFieldVariableCc;
+		NamespaceResolver mockFieldVariableNsResolver;
+		File mockFieldVariableRepositoryHome;
+		ClusterContext mockInstance = mock(ClusterContext.class);
+		mockFieldVariableCc = cc;
+		mockFieldVariableRepositoryHome = null;
+		mockFieldVariableNsResolver = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
+		when(mockInstance.getClusterConfig()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableCc;
+		});
+		when(mockInstance.getRepositoryHome()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableRepositoryHome;
+		});
+		when(mockInstance.getNamespaceResolver()).thenAnswer((stubInvo) -> {
+			return mockFieldVariableNsResolver;
+		});
+		return mockInstance;
+	}
 
-    /**
-     * Namespace resolver.
-     */
-    private final NamespaceResolver nsResolver;
+	// ----------------------------------------------------------- ClusterContext
 
-    /**
-     * Create a new instance of this class.
-     *
-     * @param cc cluster config
-     * @param repositoryHome repository home
-     */
-    public SimpleClusterContext(ClusterConfig cc, File repositoryHome) {
-        this.cc = cc;
-        this.repositoryHome = repositoryHome;
-
-        nsResolver = new RegistryNamespaceResolver(new SimpleNamespaceRegistry());
-    }
-
-    /**
-     * Create a new instance of this class. Equivalent to
-     * <blockquote>SimpleClusterContext(cc, <code>null</code>)</blockquote>
-     *
-     * @param cc cluster config
-     */
-    public SimpleClusterContext(ClusterConfig cc) {
-        this(cc, null);
-    }
-
-    //----------------------------------------------------------- ClusterContext
-
-    /**
-     * {@inheritDoc}
-     */
-    public ClusterConfig getClusterConfig() {
-        return cc;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public NamespaceResolver getNamespaceResolver() {
-        return nsResolver;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public File getRepositoryHome() {
-        return repositoryHome;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void lockEventsReady(String workspace) throws RepositoryException {
-        // nothing to be done here
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void updateEventsReady(String workspace) throws RepositoryException {
-        // nothing to be done here
-    }
 }

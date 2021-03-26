@@ -16,6 +16,10 @@
  */
 package org.apache.jackrabbit.core;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Workspace;
@@ -53,28 +57,16 @@ public class ShareableNodeTest extends AbstractJCRTest {
 		Workspace workspace = b1.getSession().getWorkspace();
 		workspace.clone(workspace.getName(), b1.getPath(), a2.getPath() + "/b2", false);
 
-		// event listener that counts events received
-		class EventCounter implements SynchronousEventListener {
-
-			private int count;
-
-			public void onEvent(EventIterator events) {
-				while (events.hasNext()) {
-					events.nextEvent();
-					count++;
-				}
+		SynchronousEventListener el = mock(SynchronousEventListener.class);
+		int[] elCount = new int[1];
+		doAnswer((stubInvo) -> {
+			EventIterator events = stubInvo.getArgument(0);
+			while (events.hasNext()) {
+				events.nextEvent();
+				elCount[0]++;
 			}
-
-			public int getEventCount() {
-				return count;
-			}
-
-			public void resetCount() {
-				count = 0;
-			}
-		}
-
-		EventCounter el = new EventCounter();
+			return null;
+		}).when(el).onEvent(any());
 		ObservationManager om = superuser.getWorkspace().getObservationManager();
 
 		// add node underneath shared set: verify it generates one event only
@@ -82,39 +74,39 @@ public class ShareableNodeTest extends AbstractJCRTest {
 		b1.addNode("c");
 		b1.save();
 		superuser.getWorkspace().getObservationManager().removeEventListener(el);
-		assertEquals(1, el.getEventCount());
+		assertEquals(1, elCount[0]);
 
 		// remove node underneath shared set: verify it generates one event only
-		el.resetCount();
+		elCount[0] = 0;
 		om.addEventListener(el, Event.NODE_REMOVED, testRootNode.getPath(), true, null, null, false);
 		b1.getNode("c").remove();
 		b1.save();
 		superuser.getWorkspace().getObservationManager().removeEventListener(el);
-		assertEquals(1, el.getEventCount());
+		assertEquals(1, elCount[0]);
 
 		// add property underneath shared set: verify it generates one event only
-		el.resetCount();
+		elCount[0] = 0;
 		om.addEventListener(el, Event.PROPERTY_ADDED, testRootNode.getPath(), true, null, null, false);
 		b1.setProperty("c", "1");
 		b1.save();
 		superuser.getWorkspace().getObservationManager().removeEventListener(el);
-		assertEquals(1, el.getEventCount());
+		assertEquals(1, elCount[0]);
 
 		// modify property underneath shared set: verify it generates one event only
-		el.resetCount();
+		elCount[0] = 0;
 		om.addEventListener(el, Event.PROPERTY_CHANGED, testRootNode.getPath(), true, null, null, false);
 		b1.setProperty("c", "2");
 		b1.save();
 		superuser.getWorkspace().getObservationManager().removeEventListener(el);
-		assertEquals(1, el.getEventCount());
+		assertEquals(1, elCount[0]);
 
 		// remove property underneath shared set: verify it generates one event only
-		el.resetCount();
+		elCount[0] = 0;
 		om.addEventListener(el, Event.PROPERTY_REMOVED, testRootNode.getPath(), true, null, null, false);
 		b1.getProperty("c").remove();
 		b1.save();
 		superuser.getWorkspace().getObservationManager().removeEventListener(el);
-		assertEquals(1, el.getEventCount());
+		assertEquals(1, elCount[0]);
 	}
 
 	/**

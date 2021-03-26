@@ -1,0 +1,144 @@
+----------------------------------------------------------------
+Thu Mar 25 12:28:40 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\version\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:40 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 888c4022-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\default\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:41 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 6965c036-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\security\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:41 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 9da4806c-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\test\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:42 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 7ff00080-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\version\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:42 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 629f8094-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\default\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:42 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 45b300a8-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\security\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance 3ff4c0de-0178-6a37-6a7c-00007b000000 
+on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\test\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+Loaded from file:/C:/Users/wx199/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.8+10-LTS
+user.dir=D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=null
+Warning: The database was at least at one time booted with derby.system.durability=test. As a result of this mode being used, it is possible that the database may not be able to recover, committed transactions may be lost, and the database may be in an inconsistent state. This may cause unexpected errors.
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 629f8094-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\default\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 45b300a8-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\security\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 3ff4c0de-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\workspaces\test\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 7ff00080-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository-2\version\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 888c4022-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\default\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 6965c036-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\security\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance 9da4806c-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\workspaces\test\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
+----------------------------------------------------------------
+Thu Mar 25 12:28:43 EDT 2021:
+Shutting down instance a816c00e-0178-6a37-6a7c-00007b000000 on database directory D:\projects\testing_auto_refactoring\jackrabbit\jackrabbit-core\target\repository\version\db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5c29bfd 
