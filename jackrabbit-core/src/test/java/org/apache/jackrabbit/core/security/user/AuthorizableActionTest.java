@@ -16,6 +16,23 @@
  */
 package org.apache.jackrabbit.core.security.user;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.security.AccessControlList;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
+
 import org.apache.jackrabbit.api.security.user.AbstractUserTest;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -27,263 +44,241 @@ import org.apache.jackrabbit.core.security.user.action.ClearMembershipAction;
 import org.apache.jackrabbit.core.security.user.action.PasswordValidationAction;
 import org.apache.jackrabbit.test.NotExecutableException;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * <code>AuthorizableActionTest</code>...
  */
 public class AuthorizableActionTest extends AbstractUserTest {
 
-    private UserManagerImpl impl;
+	private UserManagerImpl impl;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
 
-        impl = (UserManagerImpl) userMgr;
-    }
+		impl = (UserManagerImpl) userMgr;
+	}
 
-    @Override
-    protected void tearDown() throws Exception {
-        // reset the actions
-        setActions(null);
+	@Override
+	protected void tearDown() throws Exception {
+		// reset the actions
+		setActions(null);
 
-        super.tearDown();
-    }
+		super.tearDown();
+	}
 
-    private void setActions(AuthorizableAction action) {
-        AuthorizableAction[] actions = (action == null) ?
-                new AuthorizableAction[0] :
-                new AuthorizableAction[] {action};
-        impl.setAuthorizableActions(actions);
-    }
+	private void setActions(AuthorizableAction action) {
+		AuthorizableAction[] actions = (action == null) ? new AuthorizableAction[0]
+				: new AuthorizableAction[] { action };
+		impl.setAuthorizableActions(actions);
+	}
 
-    public void testAccessControlAction() throws Exception {
-        AccessControlAction action = new AccessControlAction();
-        action.setUserPrivilegeNames("jcr:all");
-        action.setGroupPrivilegeNames("jcr:read");
+	public void testAccessControlAction() throws Exception {
+		AccessControlAction action = new AccessControlAction();
+		action.setUserPrivilegeNames("jcr:all");
+		action.setGroupPrivilegeNames("jcr:read");
 
-        User u = null;
-        Group gr = null;
-        try {
-            setActions(action);
+		User u = null;
+		Group gr = null;
+		try {
+			setActions(action);
 
-            String uid = getTestPrincipal().getName();
-            u = impl.createUser(uid, buildPassword(uid));
-            save(superuser);
-            assertAcAction(u, impl);
+			String uid = getTestPrincipal().getName();
+			u = impl.createUser(uid, buildPassword(uid));
+			save(superuser);
+			assertAcAction(u, impl);
 
-            String grId = getTestPrincipal().getName();
-            gr = impl.createGroup(grId);
-            save(superuser);
-            assertAcAction(gr, impl);
-        } catch (UnsupportedRepositoryOperationException e) {
-            throw new NotExecutableException(e.getMessage());
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            if (gr != null) {
-                gr.remove();
-            }
-            save(superuser);
-        }
-    }
+			String grId = getTestPrincipal().getName();
+			gr = impl.createGroup(grId);
+			save(superuser);
+			assertAcAction(gr, impl);
+		} catch (UnsupportedRepositoryOperationException e) {
+			throw new NotExecutableException(e.getMessage());
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			if (gr != null) {
+				gr.remove();
+			}
+			save(superuser);
+		}
+	}
 
-    private static void assertAcAction(Authorizable a, UserManagerImpl umgr) throws RepositoryException, NotExecutableException {
-        Session s = umgr.getSession();
-        AccessControlManager acMgr = s.getAccessControlManager();
-        boolean hasACL = false;
-        AccessControlPolicyIterator it = acMgr.getApplicablePolicies("/");
-        while (it.hasNext()) {
-            if (it.nextAccessControlPolicy() instanceof AccessControlList) {
-                hasACL = true;
-                break;
-            }
-        }
+	private static void assertAcAction(Authorizable a, UserManagerImpl umgr)
+			throws RepositoryException, NotExecutableException {
+		Session s = umgr.getSession();
+		AccessControlManager acMgr = s.getAccessControlManager();
+		boolean hasACL = false;
+		AccessControlPolicyIterator it = acMgr.getApplicablePolicies("/");
+		while (it.hasNext()) {
+			if (it.nextAccessControlPolicy() instanceof AccessControlList) {
+				hasACL = true;
+				break;
+			}
+		}
 
-        if (!hasACL) {
-            for (AccessControlPolicy p : acMgr.getPolicies("/")) {
-                if (p instanceof AccessControlList) {
-                    hasACL = true;
-                    break;
-                }
-            }
-        }
+		if (!hasACL) {
+			for (AccessControlPolicy p : acMgr.getPolicies("/")) {
+				if (p instanceof AccessControlList) {
+					hasACL = true;
+					break;
+				}
+			}
+		}
 
-        if (!hasACL) {
-            throw new NotExecutableException("No ACLs in workspace containing users.");
-        }
+		if (!hasACL) {
+			throw new NotExecutableException("No ACLs in workspace containing users.");
+		}
 
-        String path = a.getPath();
-        assertEquals(1, acMgr.getPolicies(path).length);
-        assertTrue(acMgr.getPolicies(path)[0] instanceof AccessControlList);
-    }
+		String path = a.getPath();
+		assertEquals(1, acMgr.getPolicies(path).length);
+		assertTrue(acMgr.getPolicies(path)[0] instanceof AccessControlList);
+	}
 
-    public void testClearMembershipAction() throws Exception {
-        User u = null;
-        Group gr = null;
-        try {
-            setActions(new ClearMembershipAction());
+	public void testClearMembershipAction() throws Exception {
+		User u = null;
+		Group gr = null;
+		try {
+			setActions(new ClearMembershipAction());
 
-            String uid = getTestPrincipal().getName();
-            u = impl.createUser(uid, buildPassword(uid));
+			String uid = getTestPrincipal().getName();
+			u = impl.createUser(uid, buildPassword(uid));
 
-            String grId = getTestPrincipal().getName();
-            gr = impl.createGroup(grId);
-            gr.addMember(u);
+			String grId = getTestPrincipal().getName();
+			gr = impl.createGroup(grId);
+			gr.addMember(u);
 
-            save(superuser);
+			save(superuser);
 
-            assertTrue(gr.isMember(u));
+			assertTrue(gr.isMember(u));
 
-            u.remove();
-            u = null;
+			u.remove();
+			u = null;
 
-            assertFalse(gr.isMember(u));
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            if (gr != null) {
-                gr.remove();
-            }
-            save(superuser);
-        }
-    }
+			assertFalse(gr.isMember(u));
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			if (gr != null) {
+				gr.remove();
+			}
+			save(superuser);
+		}
+	}
 
-    public void testPasswordAction() throws Exception {
-        User u = null;
+	public void testPasswordAction() throws Exception, RepositoryException {
+		User u = null;
 
-        try {
-            TestAction action = new TestAction();
-            setActions(action);
+		try {
+			AbstractAuthorizableAction action = spy(AbstractAuthorizableAction.class);
+			setActions(action);
 
-            String uid = getTestPrincipal().getName();
-            u = impl.createUser(uid, buildPassword(uid));
+			String uid = getTestPrincipal().getName();
+			u = impl.createUser(uid, buildPassword(uid));
 
-            u.changePassword("pw1");
-            assertEquals(1, action.called);
+			u.changePassword("pw1");
+			verify(action, times(1)).onPasswordChange(any(User.class), any(String.class), any(Session.class));
 
-            u.changePassword("pw2", "pw1");
-            assertEquals(2, action.called);
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            save(superuser);
-        }
-    }
+			u.changePassword("pw2", "pw1");
+			verify(action, times(2)).onPasswordChange(any(User.class), any(String.class), any(Session.class));
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			save(superuser);
+		}
+	}
 
-    public void testPasswordValidationAction() throws Exception {
-        User u = null;
+	public void testPasswordValidationAction() throws Exception {
+		User u = null;
 
-        try {
-            String uid = getTestPrincipal().getName();
-            u = impl.createUser(uid, buildPassword(uid));
+		try {
+			String uid = getTestPrincipal().getName();
+			u = impl.createUser(uid, buildPassword(uid));
 
-            PasswordValidationAction pwAction = new PasswordValidationAction();
-            pwAction.setConstraint("^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z]).*");
-            setActions(pwAction);
+			PasswordValidationAction pwAction = new PasswordValidationAction();
+			pwAction.setConstraint("^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z]).*");
+			setActions(pwAction);
 
-            List<String> invalid = new ArrayList<String>();
-            invalid.add("pw1");
-            invalid.add("only6C");
-            invalid.add("12345678");
-            invalid.add("WITHOUTLOWERCASE");
-            invalid.add("withoutuppercase");
+			List<String> invalid = new ArrayList<String>();
+			invalid.add("pw1");
+			invalid.add("only6C");
+			invalid.add("12345678");
+			invalid.add("WITHOUTLOWERCASE");
+			invalid.add("withoutuppercase");
 
-            for (String pw : invalid) {
-                try {
-                    u.changePassword(pw);
-                    fail("should throw constraint violation");
-                } catch (ConstraintViolationException e) {
-                    // success
-                }
-            }
+			for (String pw : invalid) {
+				try {
+					u.changePassword(pw);
+					fail("should throw constraint violation");
+				} catch (ConstraintViolationException e) {
+					// success
+				}
+			}
 
-            List<String> valid = new ArrayList<String>();
-            valid.add("abCDefGH");
-            valid.add("Abbbbbbbbbbbb");
-            valid.add("cDDDDDDDDDDDDDDDDD");
-            valid.add("gH%%%%%%%%%%%%%%%%^^");
-            valid.add("&)(*&^%23qW");
+			List<String> valid = new ArrayList<String>();
+			valid.add("abCDefGH");
+			valid.add("Abbbbbbbbbbbb");
+			valid.add("cDDDDDDDDDDDDDDDDD");
+			valid.add("gH%%%%%%%%%%%%%%%%^^");
+			valid.add("&)(*&^%23qW");
 
-            for (String pw : valid) {
-                u.changePassword(pw);
-            }
+			for (String pw : valid) {
+				u.changePassword(pw);
+			}
 
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            save(superuser);
-        }
-    }
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			save(superuser);
+		}
+	}
 
-    public void testPasswordValidationActionIgnoresHashedPwStringOnCreate() throws Exception {
-        User u = null;
+	public void testPasswordValidationActionIgnoresHashedPwStringOnCreate() throws Exception {
+		User u = null;
 
-        try {
-            PasswordValidationAction pwAction = new PasswordValidationAction();
-            pwAction.setConstraint("^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z]).*");
-            setActions(pwAction);
+		try {
+			PasswordValidationAction pwAction = new PasswordValidationAction();
+			pwAction.setConstraint("^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z]).*");
+			setActions(pwAction);
 
-            String uid = getTestPrincipal().getName();
-            String hashed = PasswordUtility.buildPasswordHash("DWkej32H");
-            u = impl.createUser(uid, hashed);
+			String uid = getTestPrincipal().getName();
+			String hashed = PasswordUtility.buildPasswordHash("DWkej32H");
+			u = impl.createUser(uid, hashed);
 
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            save(superuser);
-        }
-    }
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			save(superuser);
+		}
+	}
 
-    public void testPasswordValidationActionOnChange() throws Exception {
-        User u = null;
+	public void testPasswordValidationActionOnChange() throws Exception {
+		User u = null;
 
-        try {
-            String uid = getTestPrincipal().getName();
-            u = impl.createUser(uid, buildPassword(uid));
+		try {
+			String uid = getTestPrincipal().getName();
+			u = impl.createUser(uid, buildPassword(uid));
 
-            PasswordValidationAction pwAction = new PasswordValidationAction();
-            pwAction.setConstraint("abc");
-            setActions(pwAction);
+			PasswordValidationAction pwAction = new PasswordValidationAction();
+			pwAction.setConstraint("abc");
+			setActions(pwAction);
 
-            String hashed = PasswordUtility.buildPasswordHash("abc");
-            u.changePassword(hashed);
+			String hashed = PasswordUtility.buildPasswordHash("abc");
+			u.changePassword(hashed);
 
-            fail("Password change must always enforce password validation.");
+			fail("Password change must always enforce password validation.");
 
-        } catch (ConstraintViolationException e) {
-            // success
-        } finally {
-            if (u != null) {
-                u.remove();
-            }
-            save(superuser);
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    private class TestAction extends AbstractAuthorizableAction {
-
-        private int called = 0;
-
-        @Override
-        public void onPasswordChange(User user, String newPassword, Session session) throws RepositoryException {
-            called++;
-        }
-    }
+		} catch (ConstraintViolationException e) {
+			// success
+		} finally {
+			if (u != null) {
+				u.remove();
+			}
+			save(superuser);
+		}
+	}
 }
