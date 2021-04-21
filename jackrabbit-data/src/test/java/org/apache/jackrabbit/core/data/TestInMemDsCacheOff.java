@@ -16,16 +16,16 @@
  */
 package org.apache.jackrabbit.core.data;
 
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+
+import java.util.Properties;
+
 import javax.jcr.RepositoryException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.mockito.Mockito;
-import org.mockito.ArgumentCaptor;
-import static org.mockito.Mockito.*;
-import org.apache.jackrabbit.core.data.Backend;
-import org.apache.jackrabbit.core.data.CachingDataStore;
-import java.util.Properties;
 
 /**
  * Test {@link CachingDataStore} with InMemoryBackend and local cache off.
@@ -33,10 +33,11 @@ import java.util.Properties;
 
 public class TestInMemDsCacheOff extends TestCaseBase {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDsCacheOff.class);
-    @Override
-    protected DataStore createDataStore() throws RepositoryException {
-        CachingDataStore inMemDS = spy(CachingDataStore.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(TestInMemDsCacheOff.class);
+
+	@Override
+	protected DataStore createDataStore() throws RepositoryException {
+		CachingDataStore inMemDS = spy(CachingDataStore.class);
 		Properties[] inMemDSProperties = new Properties[1];
 		doReturn("mem.init.done").when(inMemDS).getMarkerFile();
 		doAnswer((stubInvo) -> {
@@ -46,10 +47,10 @@ public class TestInMemDsCacheOff extends TestCaseBase {
 			}
 			return backend;
 		}).when(inMemDS).createBackend();
-        inMemDSProperties[0] = null;
-        inMemDS.init(dataStoreDir);
-        inMemDS.setSecret("12345");
-        inMemDS.setCacheSize(0);
-        return inMemDS;
-    }
+		inMemDSProperties[0] = null;
+		inMemDS.init(dataStoreDir);
+		inMemDS.setSecret("12345");
+		inMemDS.setCacheSize(0);
+		return inMemDS;
+	}
 }
